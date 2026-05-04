@@ -1,4 +1,4 @@
-
+<div align="center">
 # ⚔️ FrameForge AI
 ### *Your Expert Gaming Buddy & Tech Support Partner*
 
