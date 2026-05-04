@@ -1,14 +1,16 @@
 <div align="center">
-
+<img width="1200" height="475" alt="FrameForge AI Banner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 
 # ⚔️ FrameForge AI
 ### *Your Expert Gaming Buddy & Tech Support Partner*
+
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge&logo=render)](https://frameforge-ai.onrender.com/)
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite)](https://vitejs.dev/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
-[![Gemini](https://img.shields.io/badge/AI-Gemini_2.0-orange?logo=google-gemini)](https://ai.google.dev/)
+[![Gemini](https://img.shields.io/badge/AI-Gemini_1.5_Flash-orange?logo=google-gemini)](https://ai.google.dev/)
 
 </div>
 
