@@ -125,7 +125,13 @@ export default function Chat({ session, onUpdateSession }: ChatProps) {
           firstChunk = false;
         }
         
-        const part = chunk.candidates?.[0]?.content?.parts?.[0];
+        // Handle safety filter triggers or empty responses
+        const candidate = chunk.candidates?.[0];
+        if (candidate?.finishReason === 'SAFETY') {
+          streamedContent += "\n\n[Message interrupted by safety filters]";
+        }
+        
+        const part = candidate?.content?.parts?.[0];
         const text = part?.text || "";
         
         if (text) {
@@ -140,18 +146,29 @@ export default function Chat({ session, onUpdateSession }: ChatProps) {
       }
     } catch (error) {
       console.error("Chat Error:", error);
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        role: 'model',
-        content: "I'm sorry, I encountered an error. Please try again.",
-        status: 'error',
-        timestamp: Date.now(),
-      };
       
-      onUpdateSession({
-        ...updatedSession,
-        messages: [...updatedSession.messages, errorMessage],
-      });
+      // If we already have some content, just mark it as an error but don't delete what we have
+      if (streamedContent) {
+        onUpdateSession({
+          ...sessionWithPlaceholder,
+          messages: sessionWithPlaceholder.messages.map(msg => 
+            msg.id === modelMessageId ? { ...msg, content: streamedContent, status: 'error' } : msg
+          )
+        });
+      } else {
+        const errorMessage: Message = {
+          id: Date.now().toString(),
+          role: 'model',
+          content: "I'm sorry, I encountered an error. Please try again.",
+          status: 'error',
+          timestamp: Date.now(),
+        };
+        
+        onUpdateSession({
+          ...updatedSession,
+          messages: [...updatedSession.messages, errorMessage],
+        });
+      }
     } finally {
       setIsTyping(false);
     }
