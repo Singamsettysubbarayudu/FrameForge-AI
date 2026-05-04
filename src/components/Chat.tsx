@@ -74,14 +74,18 @@ export default function Chat({ session, onUpdateSession }: ChatProps) {
 
     onUpdateSession(updatedSession);
 
+    let modelMessageId = "";
+    let streamedContent = "";
+    let sessionWithPlaceholder: any = null;
+
     try {
       const history = updatedSession.messages.slice(0, -1).map(msg => ({
         role: msg.role,
         parts: [{ text: msg.content }]
       }));
 
-      const modelMessageId = (Date.now() + 1).toString();
-      let streamedContent = "";
+      modelMessageId = (Date.now() + 1).toString();
+      streamedContent = "";
 
       const placeholderModelMessage: Message = {
         id: modelMessageId,
@@ -90,7 +94,7 @@ export default function Chat({ session, onUpdateSession }: ChatProps) {
         timestamp: Date.now(),
       };
 
-      const sessionWithPlaceholder = {
+      sessionWithPlaceholder = {
         ...updatedSession,
         messages: [...updatedSession.messages, placeholderModelMessage],
       };
