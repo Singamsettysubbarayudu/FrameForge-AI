@@ -160,7 +160,7 @@ export default function Chat({ session, onUpdateSession }: ChatProps) {
   return (
     <div className="flex flex-col h-full bg-[#0d0d0f] text-gray-100 relative overflow-hidden">
       <div className="flex-1 overflow-y-auto px-4 py-10 custom-scrollbar relative z-10 scroll-smooth">
-        <div className="max-w-4xl mx-auto space-y-4">
+        <div className="max-w-4xl mx-auto space-y-4 pb-40">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-12 px-4">
               <motion.div 
