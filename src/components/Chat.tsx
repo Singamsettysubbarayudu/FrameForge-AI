@@ -15,7 +15,7 @@ export default function Chat({ session, onUpdateSession }: ChatProps) {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [webSearchEnabled, setWebSearchEnabled] = useState(true);
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const messages = session?.messages || [];
@@ -149,7 +149,8 @@ export default function Chat({ session, onUpdateSession }: ChatProps) {
         }
       }
     } catch (error) {
-      console.error("Chat Error:", error);
+      // Check if it's a rate limit error (429)
+      const isRateLimit = error instanceof Error && error.message?.includes('429');
       
       // If we already have some content, just mark it as an error but don't delete what we have
       if (streamedContent) {
@@ -163,7 +164,9 @@ export default function Chat({ session, onUpdateSession }: ChatProps) {
         const errorMessage: Message = {
           id: Date.now().toString(),
           role: 'model',
-          content: "I'm sorry, I encountered an error. Please try again.",
+          content: isRateLimit 
+            ? "You've reached your Google AI rate limit for the day. Please wait a while or check your AI Studio dashboard."
+            : "I'm sorry, I encountered an error. Please try again.",
           status: 'error',
           timestamp: Date.now(),
         };
