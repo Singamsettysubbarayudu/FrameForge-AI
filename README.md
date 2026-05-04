@@ -10,7 +10,7 @@
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite)](https://vitejs.dev/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
-[![Gemini](https://img.shields.io/badge/AI-Gemini_1.5_Flash-orange?logo=google-gemini)](https://ai.google.dev/)
+[![Groq](https://img.shields.io/badge/AI-Groq_Llama_3.3-orange?logo=openai)](https://groq.com/)
 
 </div>
 
@@ -18,7 +18,7 @@
 
 ## 🚀 Overview
 
-**FrameForge AI** is a premium, specialized conversational AI designed specifically for gamers and power users. It goes beyond generic chatbots by focusing on technical configurations, hardware bottlenecks, FPS optimizations, and pro-level troubleshooting. Forged with a dark, high-performance aesthetic, it provides real-time gaming intelligence and support.
+**FrameForge AI** is a premium, specialized conversational AI designed specifically for gamers and power users. Powered by **Groq** for lightning-fast inference, it focuses on technical configurations, hardware bottlenecks, FPS optimizations, and pro-level troubleshooting. Forged with a dark, high-performance aesthetic, it provides real-time gaming intelligence and support.
 
 ## ✨ Key Features
 
@@ -36,7 +36,7 @@
 
 - **Frontend**: React 19, Vite 6, Tailwind CSS 4, Framer Motion (Motion).
 - **Backend**: Node.js with Express (integrated Vite middleware for development).
-- **AI Engine**: Google Gemini 2.0 via `@google/genai`.
+- **AI Engine**: Groq (Llama 3.3) via `openai` SDK.
 - **Icons**: Lucide React.
 - **Styling**: Modern CSS with glassmorphism and custom animations.
 
@@ -45,7 +45,7 @@
 ### Prerequisites
 
 - **Node.js**: Version 18.x or higher.
-- **Gemini API Key**: Obtain one from [Google AI Studio](https://aistudio.google.com/).
+- **Groq API Key**: Obtain one from [Groq Console](https://console.groq.com/).
 
 ### Installation
 
@@ -63,7 +63,7 @@
 3. **Configure Environment Variables**:
    Create a `.env` file in the root directory and add your API key:
    ```env
-   GEMINI_API_KEY=your_api_key_here
+   GROQ_API_KEY=your_groq_api_key_here
    ```
    *(Note: The app also checks for `.env.local`)*
 

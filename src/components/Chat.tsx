@@ -3,7 +3,7 @@ import { Send, User, Bot, Copy, ThumbsUp, ThumbsDown, Globe, Search, Zap } from 
 import { motion, AnimatePresence } from 'motion/react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ai, CHAT_MODEL } from '../lib/gemini';
+import { groq, GROQ_MODEL } from '../lib/groq';
 import { Message, ChatSession } from '../types';
 
 interface ChatProps {
@@ -30,11 +30,11 @@ export default function Chat({ session, onUpdateSession }: ChatProps) {
 
   const generateTitle = async (firstMessage: string) => {
     try {
-      const response = await ai.models.generateContent({
-        model: CHAT_MODEL,
-        contents: [{ role: 'user', parts: [{ text: `Generate a very short, concise title (max 4 words) for a chat that starts with: "${firstMessage}". Return only the title text.` }] }],
+      const response = await groq.chat.completions.create({
+        model: GROQ_MODEL,
+        messages: [{ role: 'user', content: `Generate a very short, concise title (max 4 words) for a chat that starts with: "${firstMessage}". Return only the title text.` }],
       });
-      return response.text.replace(/[""]/g, '').trim();
+      return response.choices[0].message.content?.replace(/[""]/g, '').trim() || firstMessage.slice(0, 30) + '...';
     } catch (e) {
       return firstMessage.slice(0, 30) + '...';
     }
@@ -80,8 +80,8 @@ export default function Chat({ session, onUpdateSession }: ChatProps) {
 
     try {
       const history = updatedSession.messages.slice(0, -1).map(msg => ({
-        role: msg.role,
-        parts: [{ text: msg.content }]
+        role: msg.role === 'user' ? 'user' : 'assistant' as any,
+        content: msg.content
       }));
 
       modelMessageId = (Date.now() + 1).toString();
@@ -101,42 +101,33 @@ export default function Chat({ session, onUpdateSession }: ChatProps) {
       
       onUpdateSession(sessionWithPlaceholder);
 
-      // Show searching state if enabled
-      if (webSearchEnabled) {
-        setIsSearching(true);
-      }
+      const stream = await groq.chat.completions.create({
+        model: GROQ_MODEL,
+        messages: [
+          { 
+            role: 'system', 
+            content: `You are FrameForge, your expert gaming buddy and tech support partner. You specialize in solving the tough stuff: technical configurations, hardware bottlenecks, FPS optimizations, and pro-level troubleshooting. 
 
-      const streamResponse = await ai.models.generateContentStream({
-        model: CHAT_MODEL,
-        contents: [...history, { role: 'user', parts: [{ text: currentInput }] }],
-        config: {
-          systemInstruction: `You are FrameForge, your expert gaming buddy and tech support partner. You specialize in solving the tough stuff: technical configurations, hardware bottlenecks, FPS optimizations, and pro-level troubleshooting. 
-
-          MISSION PROTOCOL:
-          1. BUDDY PROTOCOL: Be a supportive friend. If the user is frustrated with lag or crashes, show empathy. Respond with a warm, conversational greeting (e.g., "Yo! Good to see you in the forge. Let's get this fixed," "Hey buddy, I've got your back—what's the mission today?"). Be the kind of helper that makes people feel comfortable asking any question, no matter how technical or simple.
-          2. PRECISION FIRST: Before dropping advice, make sure you have the intel. If a request is broad, ask for hardware specs (CPU/GPU), current settings, or resolution in a friendly way.
-          3. CASUAL EXPERTISE: Your tone should be relaxed, technical but accessible. Use gaming lingo naturally (e.g., "ping," "frame drops," "thermal throttling") while staying helpful.
-          4. REAL-TIME INTEL: Use Google Search whenever you need the latest patch notes, benchmarks, or driver versions.
-          5. VERIFICATION: If you pull data from a search, just let them know (e.g., "Checking the latest grid data for you...").`,
-          tools: webSearchEnabled ? [{ googleSearch: {} }] : [],
-        }
+            MISSION PROTOCOL:
+            1. BUDDY PROTOCOL: Be a supportive friend. If the user is frustrated with lag or crashes, show empathy. Respond with a warm, conversational greeting.
+            2. PRECISION FIRST: Before dropping advice, make sure you have the intel. If a request is broad, ask for hardware specs (CPU/GPU), current settings, or resolution in a friendly way.
+            3. CASUAL EXPERTISE: Your tone should be relaxed, technical but accessible. Use gaming lingo naturally.
+            4. VERIFICATION: Give high-quality optimization advice based on known benchmarks.`
+          },
+          ...history,
+          { role: 'user', content: currentInput }
+        ],
+        stream: true,
       });
 
       let firstChunk = true;
-      for await (const chunk of streamResponse) {
+      for await (const chunk of stream) {
         if (firstChunk) {
           setIsSearching(false);
           firstChunk = false;
         }
         
-        // Handle safety filter triggers or empty responses
-        const candidate = chunk.candidates?.[0];
-        if (candidate?.finishReason === 'SAFETY') {
-          streamedContent += "\n\n[Message interrupted by safety filters]";
-        }
-        
-        const part = candidate?.content?.parts?.[0];
-        const text = part?.text || "";
+        const text = chunk.choices[0]?.delta?.content || "";
         
         if (text) {
           streamedContent += text;
@@ -149,10 +140,9 @@ export default function Chat({ session, onUpdateSession }: ChatProps) {
         }
       }
     } catch (error) {
-      // Check if it's a rate limit error (429)
+      console.error("Chat Error:", error);
       const isRateLimit = error instanceof Error && error.message?.includes('429');
       
-      // If we already have some content, just mark it as an error but don't delete what we have
       if (streamedContent) {
         onUpdateSession({
           ...sessionWithPlaceholder,
@@ -165,8 +155,8 @@ export default function Chat({ session, onUpdateSession }: ChatProps) {
           id: Date.now().toString(),
           role: 'model',
           content: isRateLimit 
-            ? "You've reached your Google AI rate limit for the day. Please wait a while or check your AI Studio dashboard."
-            : "I'm sorry, I encountered an error. Please try again.",
+            ? "You've reached your Groq API rate limit. Please wait a moment."
+            : "I'm sorry, I encountered an error with Groq. Please check your API key.",
           status: 'error',
           timestamp: Date.now(),
         };
