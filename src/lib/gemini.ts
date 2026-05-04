@@ -8,7 +8,7 @@ if (!apiKey) {
 
 export const ai = new GoogleGenAI({ apiKey: apiKey || "" });
 
-export const CHAT_MODEL = "gemini-1.5-flash";
+export const CHAT_MODEL = "gemini-2.5-flash";
 
 export interface ChatMessage {
   role: "user" | "model";
