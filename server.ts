@@ -12,16 +12,49 @@ async function startServer() {
 
   app.use(express.json());
 
-  // API routes
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", timestamp: new Date().toISOString() });
-  });
+  // Groq API Proxy Route
+  app.post("/api/chat", async (req, res) => {
+    try {
+      const { messages } = req.body;
+      const apiKey = process.env.GROQ_API_KEY;
 
-  // Example API route for chat history (optional backend logic)
-  app.post("/api/chat-history", (req, res) => {
-    // This is a placeholder for any backend logic the user might want
-    // In this app, we're calling Gemini from the frontend as per guidelines
-    res.json({ message: "History saved (mocked)" });
+      if (!apiKey) {
+        return res.status(500).json({ error: "GROQ_API_KEY not configured on server" });
+      }
+
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages,
+          stream: true,
+        }),
+      });
+
+      // Stream the response back to the client
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+
+      if (!response.body) throw new Error("No response body");
+      
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        res.write(value);
+      }
+      res.end();
+    } catch (error) {
+      console.error("Server Chat Error:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   });
 
   // Vite middleware for development
